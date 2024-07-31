@@ -62,7 +62,7 @@ Fire and forget. Service will run in the background until told to stop.
 - **Scraper Service Options**:
 Set the `DateOverride` to `true` and set the day, month, year values to test specific dates.
 - **WorkerServiceOptions**:
-Set the initial hour, minute that the service runs. And also the inteval that scores will be retrieved and emailed.
+Set the initial hour, minute that the service runs. And also the interval that scores will be retrieved and emailed.
 - **Mail Options**:
 Set the required settings for your email account.
 
@@ -73,7 +73,7 @@ The [HtmlAgilityPack](https://html-agility-pack.net/) library is used to scrape 
 - **Data**:
 The data is scraped from the [Basketball Reference](https://www.basketball-reference.com/boxscores/) website.
 - **Email**:
-System.Net.Mail is used to configur and send emails.
+System.Net.Mail is used to configure and send emails.
 - **Email Validation**:
 The [FluentValidation](https://fluentvalidation.net/) library is used to validate email addresses.
 
