@@ -9,12 +9,20 @@ using SportsResults.Services;
 
 namespace SportsResults.WorkerService;
 
+/// <summary>
+/// Responsible for performing an action on a Periodic Timer.
+/// </summary>
 public class Worker : BackgroundService
 {
+    #region Fields
+
     private readonly ILogger<Worker> _logger;
     private readonly MailOptions _mailOptions;
     private readonly ScraperServiceOptions _scraperServiceOptions;
     private readonly WorkerServiceOptions _workerServiceOptions;
+
+    #endregion
+    #region Constructors
 
     public Worker(ILogger<Worker> logger, IOptions<MailOptions> mailOptions, IOptions<ScraperServiceOptions> scraperServiceOptions, IOptions<WorkerServiceOptions> workerServiceOptions)
     {
@@ -24,13 +32,16 @@ public class Worker : BackgroundService
         _workerServiceOptions = workerServiceOptions.Value;
     }
 
+    #endregion
+    #region Methods - Protected
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         TimeOnly scheduledTimeOnly = new TimeOnly(_workerServiceOptions.ScheduledHour, _workerServiceOptions.ScheduledMinute);
         DateOnly scheduledDateOnly = DateOnly.FromDateTime(DateTime.Now);
         DateTime scheduledDateTime = new DateTime(scheduledDateOnly, scheduledTimeOnly);
 
-        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(_workerServiceOptions.TimeInvervalInMinutes));
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
         do
         {
             _logger.LogInformation("Worker service running at: {time}", DateTime.Now);
@@ -39,43 +50,23 @@ public class Worker : BackgroundService
             if (IsReady(scheduledDateTime))
             {
                 _logger.LogInformation("Performing scheduled execution.");
-                
+
                 var date = GetDate();
                 var games = BasketballReferenceScraperService.ScrapeBoxscores(date);
                 SendEmail(date, games);
 
                 // Increment next scheduled date by 1.
-                scheduledDateTime = new DateTime(scheduledDateOnly.AddDays(1), scheduledTimeOnly);
-                
+                scheduledDateTime = scheduledDateTime.AddHours(_workerServiceOptions.ScheduledInvervalInHours);
+
                 _logger.LogInformation("- New scheduled date time: {time}", scheduledDateTime);
             }
 
         } while (await timer.WaitForNextTickAsync(stoppingToken));
-                
+
     }
 
-    private DateTime GetDate()
-    {
-        // For testing purposes only!
-        // You can set the date override to a day with games, or set to a day without games.
-        return _scraperServiceOptions.DateOverride
-            ? new DateTime(_scraperServiceOptions.DateOverrideYear, _scraperServiceOptions.DateOverrideMonth, _scraperServiceOptions.DateOverrideDay)
-            : DateTime.Now.Date;
-    }
-
-    private void SendEmail(DateTime date, IReadOnlyList<Game> games)
-    {
-        // Configure message.
-        var subject = $"Sports Results: {date.ToShortDateString()}";
-        var emailBody = new EmailBody(GetEmailBodyText(games));
-        var emailMessage = new EmailMessage(_mailOptions.UserEmailAddress, _mailOptions.ToEmailAddresses, subject, emailBody);
-
-        // Configure service.
-        var credentials = new NetworkCredential(_mailOptions.UserEmailAddress, _mailOptions.UserPassword);
-        var emailService = new EmailService(_mailOptions.SmtpClientHost, _mailOptions.SmtpClientPort, credentials, _mailOptions.SmtpClientEnableSsl);
-        
-        emailService.SendEmail(emailMessage);
-    }
+    #endregion
+    #region Methods - Private
 
     private static string GetEmailBodyText(IReadOnlyList<Game> games)
     {
@@ -109,4 +100,29 @@ public class Worker : BackgroundService
     {
         return scheduledDateTime <= DateTime.Now;
     }
+
+    private DateTime GetDate()
+    {
+        // For testing purposes only!
+        // You can set the date override to a day with games, or set to a day without games.
+        return _scraperServiceOptions.DateOverride
+            ? new DateTime(_scraperServiceOptions.DateOverrideYear, _scraperServiceOptions.DateOverrideMonth, _scraperServiceOptions.DateOverrideDay)
+            : DateTime.Now.Date;
+    }
+
+    private void SendEmail(DateTime date, IReadOnlyList<Game> games)
+    {
+        // Configure message.
+        var subject = $"Sports Results: {date.ToShortDateString()}";
+        var emailBody = new EmailBody(GetEmailBodyText(games));
+        var emailMessage = new EmailMessage(_mailOptions.UserEmailAddress, _mailOptions.ToEmailAddresses, subject, emailBody);
+
+        // Configure service.
+        var credentials = new NetworkCredential(_mailOptions.UserEmailAddress, _mailOptions.UserPassword);
+        var emailService = new EmailService(_mailOptions.SmtpClientHost, _mailOptions.SmtpClientPort, credentials, _mailOptions.SmtpClientEnableSsl);
+
+        emailService.SendEmail(emailMessage);
+    }
+
+    #endregion
 }

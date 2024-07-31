@@ -2,6 +2,9 @@
 
 namespace SportsResults.Mail.Models;
 
+/// <summary>
+/// Represents an email message.
+/// </summary>
 public class EmailMessage
 {
     #region Constructors

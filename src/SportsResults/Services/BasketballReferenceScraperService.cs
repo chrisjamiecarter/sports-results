@@ -3,10 +3,18 @@ using SportsResults.Models;
 
 namespace SportsResults.Services;
 
+/// <summary>
+/// Service that is responsible for scraping the basketball reference website.
+/// </summary>
 public class BasketballReferenceScraperService
 {
+    #region Fields
+
     public static readonly string BaseUrl = "https://www.basketball-reference.com";
     public static readonly string BoxscoresUrl = $"{BaseUrl}/boxscores";
+
+    #endregion
+    #region Methods
 
     public static IReadOnlyList<Game> ScrapeBoxscores(DateTime gameDateTime)
     {
@@ -43,4 +51,6 @@ public class BasketballReferenceScraperService
 
         return games;
     }
+
+    #endregion
 }

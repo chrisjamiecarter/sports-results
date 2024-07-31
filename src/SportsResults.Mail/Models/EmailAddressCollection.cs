@@ -1,13 +1,24 @@
-﻿using SportsResults.Mail.Exceptions;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using SportsResults.Mail.Exceptions;
 
 namespace SportsResults.Mail.Models;
 
+/// <summary>
+/// Holds a collections of email addresses.
+/// </summary>
 public class EmailAddressCollection : Collection<EmailAddress>
 {
+    #region Constants
+
     private readonly static char[] EmailAddressDelimiters = [';', ','];
 
+    #endregion
+    #region Constructors
+
     public EmailAddressCollection() : base() { }
+
+    #endregion
+    #region Methods
 
     /// <summary>
     /// Adds a collections of email addresses.
@@ -23,7 +34,7 @@ public class EmailAddressCollection : Collection<EmailAddress>
         foreach (var emailAddressString in emailAddresses.Split(EmailAddressDelimiters))
         {
             var emailAddress = new EmailAddress(emailAddressString);
-            
+
             var validator = new EmailAddressValidator();
             var result = validator.Validate(emailAddress);
             if (!result.IsValid)
@@ -34,4 +45,6 @@ public class EmailAddressCollection : Collection<EmailAddress>
             Items.Add(emailAddress);
         }
     }
+
+    #endregion
 }

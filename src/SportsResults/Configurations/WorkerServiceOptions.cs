@@ -11,7 +11,7 @@ public class WorkerServiceOptions
 
     public int ScheduledMinute { get; set; }
 
-    public int TimeInvervalInMinutes { get; set; }
-    
+    public int ScheduledInvervalInHours { get; set; }
+
     #endregion
 }
